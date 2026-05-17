@@ -13,3 +13,5 @@ export * from './openaiConversationWithMessages';
 export * from './openaiError';
 export * from './openaiMessage';
 export * from './openaiMessageInput';
+export * from './openaiSearchResult';
+export * from './searchOpenaiConversationsParams';

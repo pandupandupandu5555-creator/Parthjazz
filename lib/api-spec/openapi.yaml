@@ -57,6 +57,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/OpenaiConversation"
+  /openai/conversations/search:
+    get:
+      operationId: searchOpenaiConversations
+      tags: [openai]
+      summary: Search conversations by message content or title
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matching conversations with snippets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OpenaiSearchResult"
   /openai/conversations/{id}:
     get:
       operationId: getOpenaiConversation
@@ -246,6 +266,23 @@ components:
         - title
         - createdAt
         - messages
+    OpenaiSearchResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        snippet:
+          type: string
+      required:
+        - id
+        - title
+        - createdAt
+        - snippet
     OpenaiError:
       type: object
       properties:

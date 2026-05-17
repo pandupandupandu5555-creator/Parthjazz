@@ -38,7 +38,18 @@ export interface OpenaiConversationWithMessages {
   messages: OpenaiMessage[];
 }
 
+export interface OpenaiSearchResult {
+  id: number;
+  title: string;
+  createdAt: string;
+  snippet: string;
+}
+
 export interface OpenaiError {
   error: string;
 }
+
+export type SearchOpenaiConversationsParams = {
+q: string;
+};
 

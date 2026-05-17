@@ -26,7 +26,9 @@ import type {
   OpenaiConversationWithMessages,
   OpenaiError,
   OpenaiMessage,
-  OpenaiMessageInput
+  OpenaiMessageInput,
+  OpenaiSearchResult,
+  SearchOpenaiConversationsParams
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -266,6 +268,90 @@ export const useCreateOpenaiConversation = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getCreateOpenaiConversationMutationOptions(options));
     }
+
+export const getSearchOpenaiConversationsUrl = (params: SearchOpenaiConversationsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/openai/conversations/search?${stringifiedParams}` : `/api/openai/conversations/search`
+}
+
+/**
+ * @summary Search conversations by message content or title
+ */
+export const searchOpenaiConversations = async (params: SearchOpenaiConversationsParams, options?: RequestInit): Promise<OpenaiSearchResult[]> => {
+
+  return customFetch<OpenaiSearchResult[]>(getSearchOpenaiConversationsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchOpenaiConversationsQueryKey = (params?: SearchOpenaiConversationsParams,) => {
+    return [
+    `/api/openai/conversations/search`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchOpenaiConversationsQueryOptions = <TData = Awaited<ReturnType<typeof searchOpenaiConversations>>, TError = ErrorType<unknown>>(params: SearchOpenaiConversationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof searchOpenaiConversations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchOpenaiConversationsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchOpenaiConversations>>> = ({ signal }) => searchOpenaiConversations(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchOpenaiConversations>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SearchOpenaiConversationsQueryResult = NonNullable<Awaited<ReturnType<typeof searchOpenaiConversations>>>
+export type SearchOpenaiConversationsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Search conversations by message content or title
+ */
+
+export function useSearchOpenaiConversations<TData = Awaited<ReturnType<typeof searchOpenaiConversations>>, TError = ErrorType<unknown>>(
+ params: SearchOpenaiConversationsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof searchOpenaiConversations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSearchOpenaiConversationsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetOpenaiConversationUrl = (id: number,) => {
 

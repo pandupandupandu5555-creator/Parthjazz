@@ -37,6 +37,22 @@ export const CreateOpenaiConversationBody = zod.object({
 
 
 /**
+ * @summary Search conversations by message content or title
+ */
+export const SearchOpenaiConversationsQueryParams = zod.object({
+  "q": zod.coerce.string()
+})
+
+export const SearchOpenaiConversationsResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "createdAt": zod.coerce.date(),
+  "snippet": zod.string()
+})
+export const SearchOpenaiConversationsResponse = zod.array(SearchOpenaiConversationsResponseItem)
+
+
+/**
  * @summary Get conversation with messages
  */
 export const GetOpenaiConversationParams = zod.object({

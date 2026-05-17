@@ -9,6 +9,7 @@ import {
   RenameOpenaiConversationBody,
   DeleteOpenaiConversationParams,
   ListOpenaiMessagesParams,
+  SearchOpenaiConversationsQueryParams,
   SendOpenaiMessageParams,
   SendOpenaiMessageBody,
 } from "@workspace/api-zod";
@@ -36,6 +37,64 @@ router.post("/openai/conversations", async (req, res): Promise<void> => {
     .returning();
 
   res.status(201).json(conversation);
+});
+
+router.get("/openai/conversations/search", async (req, res): Promise<void> => {
+  const parsed = SearchOpenaiConversationsQueryParams.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const term = parsed.data.q.trim();
+  if (!term) {
+    res.json([]);
+    return;
+  }
+
+  const pattern = `%${term}%`;
+
+  const rows = await pool.query<{
+    id: number;
+    title: string;
+    created_at: string;
+    snippet: string;
+  }>(
+    `SELECT DISTINCT ON (c.id)
+       c.id,
+       c.title,
+       c.created_at,
+       COALESCE(m.content, '') AS snippet
+     FROM conversations c
+     LEFT JOIN messages m
+       ON m.conversation_id = c.id AND m.content ILIKE $1
+     WHERE c.title ILIKE $1 OR m.content ILIKE $1
+     ORDER BY c.id, m.created_at ASC
+     LIMIT 30`,
+    [pattern]
+  );
+
+  const results = rows.rows.map((row) => {
+    const lowerTerm = term.toLowerCase();
+    const lowerSnippet = row.snippet.toLowerCase();
+    const idx = lowerSnippet.indexOf(lowerTerm);
+    let snippet = row.snippet;
+    if (idx !== -1) {
+      const start = Math.max(0, idx - 40);
+      const end = Math.min(row.snippet.length, idx + term.length + 60);
+      snippet = (start > 0 ? "…" : "") + row.snippet.slice(start, end) + (end < row.snippet.length ? "…" : "");
+    } else {
+      snippet = row.snippet.slice(0, 100) + (row.snippet.length > 100 ? "…" : "");
+    }
+    return {
+      id: row.id,
+      title: row.title,
+      createdAt: row.created_at,
+      snippet,
+    };
+  });
+
+  res.json(results);
 });
 
 router.get("/openai/conversations/:id", async (req, res): Promise<void> => {
