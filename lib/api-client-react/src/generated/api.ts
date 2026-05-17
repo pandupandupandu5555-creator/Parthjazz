@@ -344,6 +344,78 @@ export function useGetOpenaiConversation<TData = Awaited<ReturnType<typeof getOp
 
 
 
+export const getRenameOpenaiConversationUrl = (id: number,) => {
+
+
+
+
+  return `/api/openai/conversations/${id}`
+}
+
+/**
+ * @summary Rename a conversation
+ */
+export const renameOpenaiConversation = async (id: number,
+    openaiConversationInput: OpenaiConversationInput, options?: RequestInit): Promise<OpenaiConversation> => {
+
+  return customFetch<OpenaiConversation>(getRenameOpenaiConversationUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      openaiConversationInput,)
+  }
+);}
+
+
+
+
+export const getRenameOpenaiConversationMutationOptions = <TError = ErrorType<OpenaiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameOpenaiConversation>>, TError,{id: number;data: BodyType<OpenaiConversationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof renameOpenaiConversation>>, TError,{id: number;data: BodyType<OpenaiConversationInput>}, TContext> => {
+
+const mutationKey = ['renameOpenaiConversation'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renameOpenaiConversation>>, {id: number;data: BodyType<OpenaiConversationInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  renameOpenaiConversation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RenameOpenaiConversationMutationResult = NonNullable<Awaited<ReturnType<typeof renameOpenaiConversation>>>
+    export type RenameOpenaiConversationMutationBody = BodyType<OpenaiConversationInput>
+    export type RenameOpenaiConversationMutationError = ErrorType<OpenaiError>
+
+    /**
+ * @summary Rename a conversation
+ */
+export const useRenameOpenaiConversation = <TError = ErrorType<OpenaiError>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameOpenaiConversation>>, TError,{id: number;data: BodyType<OpenaiConversationInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof renameOpenaiConversation>>,
+        TError,
+        {id: number;data: BodyType<OpenaiConversationInput>},
+        TContext
+      > => {
+      return useMutation(getRenameOpenaiConversationMutationOptions(options));
+    }
+
 export const getDeleteOpenaiConversationUrl = (id: number,) => {
 
 

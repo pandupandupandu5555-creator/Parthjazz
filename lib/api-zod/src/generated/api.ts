@@ -58,6 +58,24 @@ export const GetOpenaiConversationResponse = zod.object({
 
 
 /**
+ * @summary Rename a conversation
+ */
+export const RenameOpenaiConversationParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const RenameOpenaiConversationBody = zod.object({
+  "title": zod.string()
+})
+
+export const RenameOpenaiConversationResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "createdAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Delete a conversation
  */
 export const DeleteOpenaiConversationParams = zod.object({

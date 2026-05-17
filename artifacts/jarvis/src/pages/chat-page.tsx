@@ -4,6 +4,7 @@ import {
   useListOpenaiConversations, 
   useCreateOpenaiConversation, 
   useDeleteOpenaiConversation,
+  useRenameOpenaiConversation,
   useListOpenaiMessages,
   useGetOpenaiConversation,
   getListOpenaiConversationsQueryKey
@@ -20,15 +21,18 @@ export default function ChatPage() {
   const idParam = params.id ? parseInt(params.id) : undefined;
   
   const { data: conversations, isLoading: loadingConversations } = useListOpenaiConversations();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: currentConversation } = useGetOpenaiConversation(idParam!, {
-    query: { enabled: !!idParam }
+    query: { enabled: !!idParam } as any
   });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: messages = [] } = useListOpenaiMessages(idParam!, {
-    query: { enabled: !!idParam }
+    query: { enabled: !!idParam } as any
   });
   
   const createConversation = useCreateOpenaiConversation();
   const deleteConversation = useDeleteOpenaiConversation();
+  const renameConversation = useRenameOpenaiConversation();
   const queryClient = useQueryClient();
   
   const { sendMessage, isStreaming, streamingContent } = useChatStream(idParam);
@@ -37,6 +41,10 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
+  const editInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -51,6 +59,13 @@ export default function ChatPage() {
       inputRef.current.focus();
     }
   }, [idParam]);
+
+  useEffect(() => {
+    if (editingId !== null && editInputRef.current) {
+      editInputRef.current.focus();
+      editInputRef.current.select();
+    }
+  }, [editingId]);
 
   const handleCreateNew = () => {
     createConversation.mutate({ data: { title: "New Conversation" } }, {
@@ -73,6 +88,47 @@ export default function ChatPage() {
         }
       }
     });
+  };
+
+  const startEditing = (e: React.MouseEvent, convId: number, currentTitle: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingId(convId);
+    setEditingTitle(currentTitle);
+  };
+
+  const commitEdit = () => {
+    if (editingId === null) return;
+    const trimmed = editingTitle.trim();
+    if (!trimmed) {
+      cancelEdit();
+      return;
+    }
+    renameConversation.mutate(
+      { id: editingId, data: { title: trimmed } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListOpenaiConversationsQueryKey() });
+        },
+      }
+    );
+    setEditingId(null);
+    setEditingTitle("");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditingTitle("");
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitEdit();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelEdit();
+    }
   };
 
   const handleSend = (e?: React.FormEvent) => {
@@ -132,27 +188,53 @@ export default function ChatPage() {
             <div className="p-4 text-center text-xs text-muted-foreground uppercase tracking-wider">No active protocols</div>
           ) : (
             conversations?.map((conv) => (
-              <Link key={conv.id} href={`/c/${conv.id}`}>
-                <div className={cn(
-                  "group flex items-center justify-between p-3 rounded-md text-sm transition-all duration-200 cursor-pointer",
-                  idParam === conv.id 
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[inset_2px_0_0_0_hsl(var(--sidebar-primary))]" 
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                )}>
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <MessageSquare className={cn("w-4 h-4 shrink-0", idParam === conv.id ? "text-primary" : "")} />
-                    <span className="truncate">{conv.title || "Unknown Protocol"}</span>
+              <div key={conv.id}>
+                {editingId === conv.id ? (
+                  <div className={cn(
+                    "flex items-center gap-2 p-3 rounded-md",
+                    "bg-sidebar-accent shadow-[inset_2px_0_0_0_hsl(var(--sidebar-primary))]"
+                  )}>
+                    <MessageSquare className="w-4 h-4 shrink-0 text-primary" />
+                    <input
+                      ref={editInputRef}
+                      value={editingTitle}
+                      onChange={(e) => setEditingTitle(e.target.value)}
+                      onKeyDown={handleEditKeyDown}
+                      onBlur={commitEdit}
+                      className="flex-1 min-w-0 bg-transparent text-sm text-sidebar-accent-foreground outline-none border-b border-primary/50 focus:border-primary pb-px"
+                      maxLength={80}
+                    />
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="w-6 h-6 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                    onClick={(e) => handleDelete(e, conv.id)}
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                </div>
-              </Link>
+                ) : (
+                  <Link href={`/c/${conv.id}`}>
+                    <div className={cn(
+                      "group flex items-center justify-between p-3 rounded-md text-sm transition-all duration-200 cursor-pointer",
+                      idParam === conv.id 
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[inset_2px_0_0_0_hsl(var(--sidebar-primary))]" 
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                    )}>
+                      <div className="flex items-center gap-3 overflow-hidden flex-1 min-w-0">
+                        <MessageSquare className={cn("w-4 h-4 shrink-0", idParam === conv.id ? "text-primary" : "")} />
+                        <span
+                          className="truncate cursor-text"
+                          onClick={(e) => startEditing(e, conv.id, conv.title)}
+                          title="Click to rename"
+                        >
+                          {conv.title || "Unknown Protocol"}
+                        </span>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="w-6 h-6 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                        onClick={(e) => handleDelete(e, conv.id)}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </Link>
+                )}
+              </div>
             ))
           )}
         </div>

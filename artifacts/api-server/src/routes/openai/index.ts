@@ -5,6 +5,8 @@ import { openai } from "@workspace/integrations-openai-ai-server";
 import {
   CreateOpenaiConversationBody,
   GetOpenaiConversationParams,
+  RenameOpenaiConversationParams,
+  RenameOpenaiConversationBody,
   DeleteOpenaiConversationParams,
   ListOpenaiMessagesParams,
   SendOpenaiMessageParams,
@@ -60,6 +62,33 @@ router.get("/openai/conversations/:id", async (req, res): Promise<void> => {
     .orderBy(asc(messages.createdAt));
 
   res.json({ ...conversation, messages: msgs });
+});
+
+router.patch("/openai/conversations/:id", async (req, res): Promise<void> => {
+  const params = RenameOpenaiConversationParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const body = RenameOpenaiConversationBody.safeParse(req.body);
+  if (!body.success) {
+    res.status(400).json({ error: body.error.message });
+    return;
+  }
+
+  const [updated] = await db
+    .update(conversations)
+    .set({ title: body.data.title })
+    .where(eq(conversations.id, params.data.id))
+    .returning();
+
+  if (!updated) {
+    res.status(404).json({ error: "Conversation not found" });
+    return;
+  }
+
+  res.json(updated);
 });
 
 router.delete("/openai/conversations/:id", async (req, res): Promise<void> => {
