@@ -1,0 +1,295 @@
+import { useState, useRef, useEffect } from "react";
+import { Link, useLocation, useParams } from "wouter";
+import { 
+  useListOpenaiConversations, 
+  useCreateOpenaiConversation, 
+  useDeleteOpenaiConversation,
+  useListOpenaiMessages,
+  useGetOpenaiConversation,
+  getListOpenaiConversationsQueryKey
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useChatStream } from "@/hooks/use-chat-stream";
+import { Plus, MessageSquare, Trash2, Cpu, Send, Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+export default function ChatPage() {
+  const [, setLocation] = useLocation();
+  const params = useParams();
+  const idParam = params.id ? parseInt(params.id) : undefined;
+  
+  const { data: conversations, isLoading: loadingConversations } = useListOpenaiConversations();
+  const { data: currentConversation } = useGetOpenaiConversation(idParam!, {
+    query: { enabled: !!idParam }
+  });
+  const { data: messages = [] } = useListOpenaiMessages(idParam!, {
+    query: { enabled: !!idParam }
+  });
+  
+  const createConversation = useCreateOpenaiConversation();
+  const deleteConversation = useDeleteOpenaiConversation();
+  const queryClient = useQueryClient();
+  
+  const { sendMessage, isStreaming, streamingContent } = useChatStream(idParam);
+  
+  const [inputValue, setInputValue] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, streamingContent]);
+
+  useEffect(() => {
+    if (idParam && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [idParam]);
+
+  const handleCreateNew = () => {
+    createConversation.mutate({ data: { title: "New Conversation" } }, {
+      onSuccess: (conv) => {
+        queryClient.invalidateQueries({ queryKey: getListOpenaiConversationsQueryKey() });
+        setLocation(`/c/${conv.id}`);
+        setSidebarOpen(false);
+      }
+    });
+  };
+
+  const handleDelete = (e: React.MouseEvent, convId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    deleteConversation.mutate({ id: convId }, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: getListOpenaiConversationsQueryKey() });
+        if (idParam === convId) {
+          setLocation('/');
+        }
+      }
+    });
+  };
+
+  const handleSend = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!inputValue.trim() || isStreaming || !idParam) return;
+    
+    sendMessage(inputValue);
+    setInputValue("");
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  return (
+    <div className="flex h-screen w-full overflow-hidden bg-background">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm md:hidden animate-in fade-in"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={cn(
+        "fixed md:static inset-y-0 left-0 z-50 w-72 bg-sidebar border-r border-sidebar-border transform transition-transform duration-300 ease-in-out md:transform-none flex flex-col",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sidebar-primary">
+            <Cpu className="w-6 h-6" />
+            <span className="font-bold tracking-widest text-lg uppercase">JARVIS</span>
+          </div>
+          <Button variant="ghost" size="icon" className="md:hidden text-sidebar-foreground" onClick={() => setSidebarOpen(false)}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+
+        <div className="p-4">
+          <Button 
+            onClick={handleCreateNew} 
+            className="w-full justify-start gap-2 bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20 transition-all group"
+          >
+            <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            Initialize Protocol
+          </Button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {loadingConversations ? (
+            <div className="p-4 text-center text-sm text-muted-foreground animate-pulse">Initializing data streams...</div>
+          ) : conversations?.length === 0 ? (
+            <div className="p-4 text-center text-xs text-muted-foreground uppercase tracking-wider">No active protocols</div>
+          ) : (
+            conversations?.map((conv) => (
+              <Link key={conv.id} href={`/c/${conv.id}`}>
+                <div className={cn(
+                  "group flex items-center justify-between p-3 rounded-md text-sm transition-all duration-200 cursor-pointer",
+                  idParam === conv.id 
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[inset_2px_0_0_0_hsl(var(--sidebar-primary))]" 
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                )}>
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <MessageSquare className={cn("w-4 h-4 shrink-0", idParam === conv.id ? "text-primary" : "")} />
+                    <span className="truncate">{conv.title || "Unknown Protocol"}</span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="w-6 h-6 shrink-0 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                    onClick={(e) => handleDelete(e, conv.id)}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </Link>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col relative min-w-0">
+        <header className="h-14 border-b border-border flex items-center px-4 shrink-0 bg-background/80 backdrop-blur-md sticky top-0 z-10">
+          <Button variant="ghost" size="icon" className="md:hidden mr-2 text-foreground" onClick={() => setSidebarOpen(true)}>
+            <Menu className="w-5 h-5" />
+          </Button>
+          {currentConversation ? (
+            <h1 className="text-sm font-medium tracking-wide uppercase text-foreground/80">{currentConversation.title}</h1>
+          ) : (
+            <div className="w-full flex justify-center">
+              <span className="text-xs tracking-[0.2em] text-primary/60 uppercase">System Standby</span>
+            </div>
+          )}
+        </header>
+
+        {idParam ? (
+          <>
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+              {messages.length === 0 && !isStreaming ? (
+                <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto animate-slide-up-fade">
+                  <div className="w-16 h-16 rounded-full border border-primary/30 flex items-center justify-center mb-6 bg-primary/5 shadow-[0_0_30px_hsl(var(--primary)/0.1)]">
+                    <Cpu className="w-8 h-8 text-primary animate-pulse-glow" />
+                  </div>
+                  <h2 className="text-xl font-medium tracking-widest uppercase mb-2">Systems Online</h2>
+                  <p className="text-muted-foreground text-sm">Jarvis is ready for your command. Input directives below to begin.</p>
+                </div>
+              ) : (
+                <div className="max-w-3xl mx-auto space-y-8 pb-10">
+                  {messages.map((msg, i) => (
+                    <div 
+                      key={msg.id} 
+                      className={cn(
+                        "flex w-full animate-slide-up-fade",
+                        msg.role === "user" ? "justify-end" : "justify-start"
+                      )}
+                      style={{ animationDelay: `${Math.min(i * 50, 300)}ms` }}
+                    >
+                      <div className={cn(
+                        "max-w-[85%] rounded-2xl px-5 py-4 text-[15px] leading-relaxed",
+                        msg.role === "user" 
+                          ? "bg-secondary text-secondary-foreground rounded-br-sm" 
+                          : "bg-transparent border border-border/50 text-foreground"
+                      )}>
+                        {msg.role === "assistant" && (
+                          <div className="flex items-center gap-2 mb-2">
+                            <Cpu className="w-4 h-4 text-primary" />
+                            <span className="text-xs font-bold tracking-widest text-primary uppercase">Jarvis</span>
+                          </div>
+                        )}
+                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {isStreaming && (
+                    <div className="flex w-full justify-start animate-slide-up-fade">
+                      <div className="max-w-[85%] rounded-2xl px-5 py-4 bg-transparent border border-primary/20 shadow-[0_0_15px_hsl(var(--primary)/0.05)] text-foreground">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Cpu className="w-4 h-4 text-primary animate-pulse-glow" />
+                          <span className="text-xs font-bold tracking-widest text-primary uppercase">Jarvis Processing</span>
+                        </div>
+                        <div className="whitespace-pre-wrap">{streamingContent}</div>
+                        {!streamingContent && (
+                          <div className="flex gap-1 mt-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary/50 animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 md:px-8 bg-gradient-to-t from-background via-background to-transparent pt-8 shrink-0">
+              <div className="max-w-3xl mx-auto relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-accent/30 rounded-xl blur opacity-20 group-focus-within:opacity-50 transition duration-500"></div>
+                <div className="relative flex items-end gap-2 bg-secondary/80 backdrop-blur border border-border/50 focus-within:border-primary/50 rounded-xl p-2 transition-colors">
+                  <textarea
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Input command sequence..."
+                    className="w-full max-h-48 min-h-[44px] bg-transparent resize-none outline-none py-2.5 px-3 text-[15px] placeholder:text-muted-foreground/60 scrollbar-thin"
+                    rows={1}
+                    disabled={isStreaming}
+                    style={{ height: "auto" }}
+                    onInput={(e) => {
+                      const target = e.target as HTMLTextAreaElement;
+                      target.style.height = 'auto';
+                      target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
+                    }}
+                  />
+                  <Button 
+                    onClick={handleSend}
+                    disabled={!inputValue.trim() || isStreaming}
+                    className="h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 disabled:opacity-50"
+                    size="icon"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="text-center mt-2">
+                  <span className="text-[10px] text-muted-foreground/40 uppercase tracking-widest font-mono">Shift+Enter for newline</span>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0)_0%,hsl(var(--background))_100%)]">
+            <div className="relative mb-8 group">
+              <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150 group-hover:scale-110 group-hover:bg-primary/30 transition-all duration-1000"></div>
+              <div className="w-24 h-24 rounded-full border border-primary/40 flex items-center justify-center relative bg-background/50 backdrop-blur">
+                <Cpu className="w-10 h-10 text-primary animate-pulse-glow" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-light tracking-[0.3em] uppercase mb-4 text-foreground/90">Jarvis Online</h2>
+            <p className="text-muted-foreground max-w-md mb-8">Personal AI Assistant Interface. Initialize a new protocol to begin interaction sequence.</p>
+            <Button 
+              onClick={handleCreateNew}
+              size="lg"
+              className="bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 hover:border-primary/50 tracking-wider uppercase transition-all duration-300"
+            >
+              Initialize New Protocol
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
