@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, asc } from "drizzle-orm";
-import { db, conversations, messages } from "@workspace/db";
+import { db, pool, conversations, messages } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import {
   CreateOpenaiConversationBody,
@@ -175,6 +175,20 @@ router.post(
       role: "assistant",
       content: fullResponse,
     });
+
+    if (history.length === 1) {
+      const raw = body.data.content.trim();
+      const firstSentence = raw.split(/[.!?\n]/)[0].trim();
+      const source = firstSentence.length >= 8 ? firstSentence : raw;
+      const autoTitle =
+        source.length <= 42
+          ? source
+          : source.slice(0, 42).replace(/\s+\S*$/, "") + "…";
+      await pool.query(
+        "UPDATE conversations SET title = $1 WHERE id = $2",
+        [autoTitle, params.data.id]
+      );
+    }
 
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();
