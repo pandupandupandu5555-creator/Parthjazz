@@ -435,10 +435,10 @@ export default function ChatPage() {
 
         {idParam ? (
           <>
-            <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
               {messages.length === 0 && !isStreaming ? (
                 <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto animate-slide-up-fade">
-                  <div className="w-16 h-16 rounded-full border border-primary/30 flex items-center justify-center mb-6 bg-primary/5 shadow-[0_0_30px_hsl(var(--primary)/0.1)]">
+                  <div className="w-16 h-16 rounded-full border border-primary/30 flex items-center justify-center mb-4 bg-primary/5 shadow-[0_0_30px_hsl(var(--primary)/0.1)]">
                     <Cpu className="w-8 h-8 text-primary animate-pulse-glow" />
                   </div>
                   <h2 className="text-xl font-medium tracking-widest uppercase mb-2">Systems Online</h2>
@@ -447,7 +447,7 @@ export default function ChatPage() {
                   </p>
                 </div>
               ) : (
-                <div className="max-w-3xl mx-auto space-y-8 pb-10">
+                <div className="max-w-3xl mx-auto space-y-6 pb-8">
                   {messages.map((msg, i) => (
                     <div
                       key={msg.id}
@@ -519,7 +519,7 @@ export default function ChatPage() {
               )}
             </div>
 
-            <div className="p-4 md:px-8 bg-gradient-to-t from-background via-background to-transparent pt-8 shrink-0">
+            <div className="p-4 md:px-8 bg-gradient-to-t from-background via-background to-transparent pt-5 shrink-0">
               <div className="max-w-3xl mx-auto relative group">
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/30 to-accent/30 rounded-xl blur opacity-20 group-focus-within:opacity-50 transition duration-500"></div>
                 <div className="relative flex items-end gap-2 bg-secondary/80 backdrop-blur border border-border/50 focus-within:border-primary/50 rounded-xl p-2 transition-colors">
