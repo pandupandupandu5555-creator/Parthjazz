@@ -290,7 +290,7 @@ router.post(
     const notes = readNotes();
     const notesContext =
       notes.length > 0
-        ? `\n\nYou have the following notes saved about this user:\n${notes.map((n) => `- ${n.text}`).join("\n")}`
+        ? `\n\nMEMORY — facts you know about this user (treat these as true and use them when relevant):\n${notes.map((n) => `- ${n.text}`).join("\n")}`
         : "";
 
     chatMessages.unshift({

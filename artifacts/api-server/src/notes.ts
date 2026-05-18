@@ -1,30 +1,38 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
-import { join } from "path";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 
 export interface Note {
   text: string;
   savedAt: string;
 }
 
-const DATA_DIR = join(process.cwd(), "data");
-const NOTES_FILE = join(DATA_DIR, "notes.json");
+// Resolve relative to this file, not process.cwd() — works regardless of
+// where the process was started from.
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "data");
+
+function notesFile(): string {
+  return join(ROOT, "notes.json");
+}
 
 function ensureFile(): void {
-  if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
-  if (!existsSync(NOTES_FILE)) writeFileSync(NOTES_FILE, "[]", "utf-8");
+  if (!existsSync(ROOT)) mkdirSync(ROOT, { recursive: true });
+  const file = notesFile();
+  if (!existsSync(file)) writeFileSync(file, "[]", "utf-8");
 }
 
 export function readNotes(): Note[] {
   ensureFile();
   try {
-    return JSON.parse(readFileSync(NOTES_FILE, "utf-8")) as Note[];
+    return JSON.parse(readFileSync(notesFile(), "utf-8")) as Note[];
   } catch {
     return [];
   }
 }
 
 export function saveNote(text: string): void {
+  ensureFile();
   const notes = readNotes();
   notes.push({ text, savedAt: new Date().toISOString() });
-  writeFileSync(NOTES_FILE, JSON.stringify(notes, null, 2), "utf-8");
+  writeFileSync(notesFile(), JSON.stringify(notes, null, 2), "utf-8");
 }
