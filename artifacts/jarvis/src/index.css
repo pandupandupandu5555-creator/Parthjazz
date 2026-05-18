@@ -60,21 +60,82 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ── Light theme (default) ─────────────────────────────────────── */
 :root {
+  color-scheme: light;
+  --button-outline: rgba(0, 0, 0, 0.08);
+  --badge-outline: rgba(0, 0, 0, 0.04);
+  --opaque-button-border-intensity: -6;
+  --elevate-1: rgba(0, 0, 0, 0.03);
+  --elevate-2: rgba(0, 0, 0, 0.06);
+
+  --background: 210 20% 98%;
+  --foreground: 224 35% 12%;
+
+  --border: 220 15% 88%;
+  --input: 220 15% 88%;
+  --ring: 190 85% 38%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 224 35% 12%;
+  --card-border: 220 15% 88%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 35% 12%;
+  --popover-border: 220 15% 88%;
+
+  /* Jarvis cyan, slightly deeper for light-mode contrast */
+  --primary: 190 85% 35%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 220 15% 93%;
+  --secondary-foreground: 224 35% 18%;
+
+  --muted: 220 15% 93%;
+  --muted-foreground: 220 12% 48%;
+
+  --accent: 190 70% 90%;
+  --accent-foreground: 190 85% 22%;
+
+  --destructive: 0 80% 55%;
+  --destructive-foreground: 0 0% 100%;
+
+  --sidebar: 220 18% 95%;
+  --sidebar-foreground: 224 35% 18%;
+  --sidebar-border: 220 15% 86%;
+  --sidebar-primary: 190 85% 35%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 14% 89%;
+  --sidebar-accent-foreground: 224 35% 14%;
+  --sidebar-ring: 190 85% 35%;
+
+  --app-font-sans: 'Geist', 'Inter', sans-serif;
+  --app-font-serif: Georgia, serif;
+  --app-font-mono: 'Geist Mono', 'Menlo', monospace;
+  --radius: 0.5rem;
+
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
+
+/* ── Dark theme ────────────────────────────────────────────────── */
+.dark {
   color-scheme: dark;
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
-
+  --button-outline: rgba(255, 255, 255, 0.10);
+  --badge-outline: rgba(255, 255, 255, 0.05);
   --opaque-button-border-intensity: 9;
-
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255, 255, 255, 0.04);
+  --elevate-2: rgba(255, 255, 255, 0.09);
 
   /* Deep space command center dark */
   --background: 224 45% 4%;
   --foreground: 214 20% 90%;
 
-  /* Dark cool grays for structure */
   --border: 224 30% 12%;
   --input: 224 30% 12%;
   --ring: 190 90% 50%;
@@ -112,11 +173,6 @@
   --sidebar-accent-foreground: 214 20% 95%;
   --sidebar-ring: 190 90% 50%;
 
-  --app-font-sans: 'Geist', 'Inter', sans-serif;
-  --app-font-serif: Georgia, serif;
-  --app-font-mono: 'Geist Mono', 'Menlo', monospace;
-  --radius: 0.5rem;
-
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
@@ -124,10 +180,6 @@
   --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-}
-
-.dark {
-  /* Everything is already dark */
 }
 
 @layer base {

@@ -12,9 +12,10 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import { Plus, MessageSquare, Trash2, Cpu, Send, Menu, X, Search } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Cpu, Send, Menu, X, Search, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/use-theme";
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -41,6 +42,7 @@ function HighlightedText({ text, term }: { text: string; term: string }) {
 }
 
 export default function ChatPage() {
+  const { theme, toggleTheme } = useTheme();
   const [, setLocation] = useLocation();
   const params = useParams();
   const idParam = params.id ? parseInt(params.id) : undefined;
@@ -333,14 +335,25 @@ export default function ChatPage() {
             <Cpu className="w-6 h-6" />
             <span className="font-bold tracking-widest text-lg uppercase">JARVIS</span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden text-sidebar-foreground"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-8 h-8 text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
+              onClick={toggleTheme}
+              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden text-sidebar-foreground"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
 
         <div className="p-3 space-y-2">

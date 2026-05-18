@@ -2,9 +2,9 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import ChatPage from "@/pages/chat-page";
+import { ThemeProvider, useTheme } from "@/hooks/use-theme";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -16,12 +16,9 @@ const queryClient = new QueryClient({
 });
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
-
+  const { theme } = useTheme();
   return (
-    <div className="dark min-h-screen bg-background text-foreground overflow-hidden selection:bg-primary/30">
+    <div className={`${theme} min-h-screen bg-background text-foreground overflow-hidden selection:bg-primary/30`}>
       {children}
     </div>
   );
@@ -40,14 +37,16 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <AppLayout>
-            <Router />
-          </AppLayout>
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <AppLayout>
+              <Router />
+            </AppLayout>
+          </WouterRouter>
+          <Toaster />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
