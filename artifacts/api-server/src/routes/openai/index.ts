@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, asc } from "drizzle-orm";
 import { db, pool, conversations, messages } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
+import { readNotes, saveNote } from "../../notes.js";
 import {
   CreateOpenaiConversationBody,
   GetOpenaiConversationParams,
@@ -214,11 +215,34 @@ router.post(
       return;
     }
 
+    const userContent = body.data.content;
+    const lowerContent = userContent.toLowerCase();
+
     await db.insert(messages).values({
       conversationId: params.data.id,
       role: "user",
-      content: body.data.content,
+      content: userContent,
     });
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    // Helper: send a plain reply without calling OpenAI
+    const sendDirectReply = async (replyText: string, isFirst: boolean) => {
+      await db.insert(messages).values({
+        conversationId: params.data.id,
+        role: "assistant",
+        content: replyText,
+      });
+      if (isFirst) {
+        const autoTitle = replyText.slice(0, 42).replace(/\s+\S*$/, "") + (replyText.length > 42 ? "…" : "");
+        await pool.query("UPDATE conversations SET title = $1 WHERE id = $2", [autoTitle, params.data.id]);
+      }
+      res.write(`data: ${JSON.stringify({ content: replyText })}\n\n`);
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      res.end();
+    };
 
     const history = await db
       .select()
@@ -226,20 +250,55 @@ router.post(
       .where(eq(messages.conversationId, params.data.id))
       .orderBy(asc(messages.createdAt));
 
+    const isFirstMessage = history.length === 1;
+
+    // ── "Remember this" ────────────────────────────────────────────
+    if (lowerContent.includes("remember this")) {
+      const match = userContent.match(/remember this[:\-,]?\s*([\s\S]*)/i);
+      const noteText = (match?.[1] ?? userContent.replace(/remember this/i, "")).trim();
+      if (noteText) saveNote(noteText);
+      const reply = noteText
+        ? `Got it. I've saved that to memory:\n\n"${noteText}"`
+        : "I've noted that down.";
+      await sendDirectReply(reply, isFirstMessage);
+      return;
+    }
+
+    // ── "What do you remember / my notes" ─────────────────────────
+    if (
+      lowerContent.includes("what do you remember") ||
+      lowerContent.includes("what have you remembered") ||
+      lowerContent.includes("my notes") ||
+      lowerContent.includes("show my notes") ||
+      lowerContent.includes("show notes")
+    ) {
+      const notes = readNotes();
+      const reply =
+        notes.length === 0
+          ? "I don't have anything saved in memory yet. You can say \"remember this: [something]\" and I'll keep it."
+          : `Here's what I remember:\n\n${notes.map((n, i) => `${i + 1}. ${n.text}`).join("\n")}`;
+      await sendDirectReply(reply, isFirstMessage);
+      return;
+    }
+
+    // ── Normal message → inject notes into system prompt ──────────
     const chatMessages = history.map((m) => ({
       role: m.role as "user" | "assistant" | "system",
       content: m.content,
     }));
 
+    const notes = readNotes();
+    const notesContext =
+      notes.length > 0
+        ? `\n\nYou have the following notes saved about this user:\n${notes.map((n) => `- ${n.text}`).join("\n")}`
+        : "";
+
     chatMessages.unshift({
       role: "system",
       content:
-        "You are Jarvis, a highly capable, witty, and intelligent AI assistant. You are helpful, precise, and occasionally charming. You speak with confidence and clarity. Keep responses concise unless the user asks for detail.",
+        "You are Jarvis, a highly capable, witty, and intelligent AI assistant. You are helpful, precise, and occasionally charming. You speak with confidence and clarity. Keep responses concise unless the user asks for detail." +
+        notesContext,
     });
-
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
 
     let fullResponse = "";
 
@@ -264,8 +323,8 @@ router.post(
       content: fullResponse,
     });
 
-    if (history.length === 1) {
-      const raw = body.data.content.trim();
+    if (isFirstMessage) {
+      const raw = userContent.trim();
       const firstSentence = raw.split(/[.!?\n]/)[0].trim();
       const source = firstSentence.length >= 8 ? firstSentence : raw;
       const autoTitle =
