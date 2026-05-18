@@ -83,6 +83,18 @@ export default function ChatPage() {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSidebarOpen(true);
+        setTimeout(() => searchInputRef.current?.focus(), 50);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -348,15 +360,19 @@ export default function ChatPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full pl-8 pr-8 py-2 text-sm bg-sidebar-accent/40 border border-sidebar-border/60 rounded-md outline-none focus:border-primary/40 focus:bg-sidebar-accent/60 placeholder:text-muted-foreground/40 text-sidebar-foreground transition-colors"
+              className="w-full pl-8 pr-14 py-2 text-sm bg-sidebar-accent/40 border border-sidebar-border/60 rounded-md outline-none focus:border-primary/40 focus:bg-sidebar-accent/60 placeholder:text-muted-foreground/40 text-sidebar-foreground transition-colors"
             />
-            {searchQuery && (
+            {searchQuery ? (
               <button
                 onClick={() => { setSearchQuery(""); searchInputRef.current?.focus(); }}
                 className="absolute right-2.5 text-muted-foreground/50 hover:text-muted-foreground transition-colors"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
+            ) : (
+              <kbd className="absolute right-2.5 pointer-events-none flex items-center gap-0.5 text-[10px] font-mono text-muted-foreground/30 select-none">
+                <span>⌘</span><span>K</span>
+              </kbd>
             )}
           </div>
         </div>
