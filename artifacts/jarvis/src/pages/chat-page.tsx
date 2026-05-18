@@ -12,7 +12,7 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import { Plus, MessageSquare, Trash2, Cpu, Send, Menu, X, Search, Sun, Moon, Copy, Check } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Cpu, Send, Square, Menu, X, Search, Sun, Moon, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
@@ -63,7 +63,7 @@ export default function ChatPage() {
   const renameConversation = useRenameOpenaiConversation();
   const queryClient = useQueryClient();
 
-  const { sendMessage, isStreaming, streamingContent } = useChatStream(idParam);
+  const { sendMessage, stopStreaming, isStreaming, streamingContent } = useChatStream(idParam);
 
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -539,14 +539,25 @@ export default function ChatPage() {
                       target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
                     }}
                   />
-                  <Button
-                    onClick={handleSend}
-                    disabled={!inputValue.trim() || isStreaming}
-                    className="h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 disabled:opacity-50"
-                    size="icon"
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
+                  {isStreaming ? (
+                    <Button
+                      onClick={stopStreaming}
+                      className="h-10 w-10 shrink-0 rounded-lg bg-destructive/80 hover:bg-destructive text-destructive-foreground transition-all duration-300"
+                      size="icon"
+                      title="Stop generating"
+                    >
+                      <Square className="w-3.5 h-3.5 fill-current" />
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleSend}
+                      disabled={!inputValue.trim()}
+                      className="h-10 w-10 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-300 disabled:opacity-50"
+                      size="icon"
+                    >
+                      <Send className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
                 <div className="text-center mt-2">
                   <span className="text-[10px] text-muted-foreground/40 uppercase tracking-widest font-mono">
