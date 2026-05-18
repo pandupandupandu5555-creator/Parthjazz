@@ -12,7 +12,7 @@ import {
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import { Plus, MessageSquare, Trash2, Cpu, Send, Menu, X, Search, Sun, Moon } from "lucide-react";
+import { Plus, MessageSquare, Trash2, Cpu, Send, Menu, X, Search, Sun, Moon, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
@@ -43,6 +43,7 @@ function HighlightedText({ text, term }: { text: string; term: string }) {
 
 export default function ChatPage() {
   const { theme, toggleTheme } = useTheme();
+  const [copiedId, setCopiedId] = useState<number | null>(null);
   const [, setLocation] = useLocation();
   const params = useParams();
   const idParam = params.id ? parseInt(params.id) : undefined;
@@ -195,6 +196,13 @@ export default function ChatPage() {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleCopy = (id: number, content: string) => {
+    navigator.clipboard.writeText(content).then(() => {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 1500);
+    });
   };
 
   const handleSearchResultClick = (convId: number) => {
@@ -444,28 +452,44 @@ export default function ChatPage() {
                     <div
                       key={msg.id}
                       className={cn(
-                        "flex w-full animate-slide-up-fade",
+                        "group/msg flex w-full animate-slide-up-fade",
                         msg.role === "user" ? "justify-end" : "justify-start"
                       )}
                       style={{ animationDelay: `${Math.min(i * 50, 300)}ms` }}
                     >
-                      <div
-                        className={cn(
-                          "max-w-[85%] rounded-2xl px-5 py-4 text-[15px] leading-relaxed",
-                          msg.role === "user"
-                            ? "bg-secondary text-secondary-foreground rounded-br-sm"
-                            : "bg-transparent border border-border/50 text-foreground"
-                        )}
-                      >
-                        {msg.role === "assistant" && (
-                          <div className="flex items-center gap-2 mb-2">
-                            <Cpu className="w-4 h-4 text-primary" />
-                            <span className="text-xs font-bold tracking-widest text-primary uppercase">
-                              Jarvis
-                            </span>
-                          </div>
-                        )}
-                        <div className="whitespace-pre-wrap">{msg.content}</div>
+                      <div className="relative max-w-[85%]">
+                        <div
+                          className={cn(
+                            "rounded-2xl px-5 py-4 text-[15px] leading-relaxed",
+                            msg.role === "user"
+                              ? "bg-secondary text-secondary-foreground rounded-br-sm"
+                              : "bg-transparent border border-border/50 text-foreground"
+                          )}
+                        >
+                          {msg.role === "assistant" && (
+                            <div className="flex items-center gap-2 mb-2">
+                              <Cpu className="w-4 h-4 text-primary" />
+                              <span className="text-xs font-bold tracking-widest text-primary uppercase">
+                                Jarvis
+                              </span>
+                            </div>
+                          )}
+                          <div className="whitespace-pre-wrap">{msg.content}</div>
+                        </div>
+                        <button
+                          onClick={() => handleCopy(msg.id, msg.content)}
+                          title="Copy message"
+                          className={cn(
+                            "absolute -bottom-3 p-1 rounded-md border transition-all duration-200",
+                            "bg-background border-border/50 text-muted-foreground hover:text-foreground hover:border-border",
+                            "opacity-0 group-hover/msg:opacity-100 focus:opacity-100",
+                            msg.role === "user" ? "right-2" : "left-2"
+                          )}
+                        >
+                          {copiedId === msg.id
+                            ? <Check className="w-3 h-3 text-primary" />
+                            : <Copy className="w-3 h-3" />}
+                        </button>
                       </div>
                     </div>
                   ))}
