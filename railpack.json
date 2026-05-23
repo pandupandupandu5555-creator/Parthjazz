@@ -1,0 +1,5 @@
+{
+  "install": {
+    "cmd": "pnpm install --no-frozen-lockfile"
+  }
+}
