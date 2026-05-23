@@ -303,7 +303,7 @@ router.post(
     let fullResponse = "";
 
     const stream = await openai.chat.completions.create({
-      model: "gpt-5.4",
+     model: "llama-3.3-70b-versatile", 
       max_completion_tokens: 8192,
       messages: chatMessages,
       stream: true,
