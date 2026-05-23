@@ -19,7 +19,7 @@ export function useChatStream(conversationId?: number) {
     setStreamingContent("");
 
     try {
-      const response = await fetch(`/api/openai/conversations/${conversationId}/messages`, {
+      fetch(`${import.meta.env.VITE_API_URL}/openai/conversations/${conversationId}/messages`
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content }),
