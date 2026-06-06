@@ -261,7 +261,7 @@ router.post(
     if (lowerContent.includes("remember this")) {
       const match = userContent.match(/remember this[:\-,]?\s*([\s\S]*)/i);
       const noteText = (match?.[1] ?? userContent.replace(/remember this/i, "")).trim();
-      if (noteText) saveNote(noteText);
+      if (noteText) saveNote("preferences", noteText);
       const reply = noteText
         ? `Got it. I've saved that to memory:\n\n"${noteText}"`
         : "I've noted that down.";
