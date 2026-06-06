@@ -3,6 +3,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 export interface Note {
+  category: string;
   text: string;
   savedAt: string;
 }
@@ -30,10 +31,17 @@ export function readNotes(): Note[] {
   }
 }
 
-export function saveNote(text: string): void {
+export function saveNote(category: string, text: string): void {
   ensureFile();
+
   const notes = readNotes();
-  notes.push({ text, savedAt: new Date().toISOString() });
+
+  notes.push({
+    category,
+    text,
+    savedAt: new Date().toISOString(),
+  });
+
   writeFileSync(notesFile(), JSON.stringify(notes, null, 2), "utf-8");
 }
 export function deleteNote(text: string): boolean {
