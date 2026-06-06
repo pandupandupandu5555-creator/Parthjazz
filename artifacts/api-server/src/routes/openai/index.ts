@@ -261,7 +261,37 @@ router.post(
     if (lowerContent.includes("remember this")) {
       const match = userContent.match(/remember this[:\-,]?\s*([\s\S]*)/i);
       const noteText = (match?.[1] ?? userContent.replace(/remember this/i, "")).trim();
-      if (noteText) saveNote("preferences", noteText);
+      if (noteText) {
+  let category = "preferences";
+
+  if (
+    noteText.toLowerCase().includes("project") ||
+    noteText.toLowerCase().includes("building") ||
+    noteText.toLowerCase().includes("jarvis")
+  ) {
+    category = "projects";
+  } else if (
+    noteText.toLowerCase().includes("goal") ||
+    noteText.toLowerCase().includes("want to") ||
+    noteText.toLowerCase().includes("aim")
+  ) {
+    category = "goals";
+  } else if (
+    noteText.toLowerCase().includes("beginner") ||
+    noteText.toLowerCase().includes("intermediate") ||
+    noteText.toLowerCase().includes("advanced")
+  ) {
+    category = "coding_level";
+  } else if (
+    noteText.toLowerCase().includes("daily") ||
+    noteText.toLowerCase().includes("every day") ||
+    noteText.toLowerCase().includes("habit")
+  ) {
+    category = "habits";
+  }
+
+  saveNote(category, noteText);
+}
       const reply = noteText
         ? `Got it. I've saved that to memory:\n\n"${noteText}"`
         : "I've noted that down.";
