@@ -36,3 +36,31 @@ export function saveNote(text: string): void {
   notes.push({ text, savedAt: new Date().toISOString() });
   writeFileSync(notesFile(), JSON.stringify(notes, null, 2), "utf-8");
 }
+export function deleteNote(text: string): boolean {
+  ensureFile();
+
+  const notes = readNotes();
+  const filtered = notes.filter(note => note.text !== text);
+
+  if (filtered.length === notes.length) {
+    return false;
+  }
+
+  writeFileSync(
+    notesFile(),
+    JSON.stringify(filtered, null, 2),
+    "utf-8"
+  );
+
+  return true;
+}
+
+export function clearNotes(): void {
+  ensureFile();
+
+  writeFileSync(
+    notesFile(),
+    JSON.stringify([], null, 2),
+    "utf-8"
+  );
+}
