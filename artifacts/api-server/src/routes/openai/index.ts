@@ -2,7 +2,12 @@ import { Router, type IRouter } from "express";
 import { eq, asc } from "drizzle-orm";
 import { db, pool, conversations, messages } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
-import { readNotes, saveNote } from "../../notes.js";
+import {
+  readNotes,
+  saveNote,
+  deleteNote,
+  clearNotes,
+} from "../../notes.js";
 import {
   CreateOpenaiConversationBody,
   GetOpenaiConversationParams,
@@ -263,7 +268,46 @@ router.post(
       await sendDirectReply(reply, isFirstMessage);
       return;
     }
+// ── "Forget this" ─────────────────────────────────────────────
+if (lowerContent.includes("forget this")) {
+  const match = userContent.match(/forget this[:\-,]?\s*([\s\S]*)/i);
+  const noteText = (match?.[1] ?? "").trim();
 
+  if (!noteText) {
+    await sendDirectReply(
+      'Tell me exactly what to forget. Example: "forget this: I like pizza"',
+      isFirstMessage
+    );
+    return;
+  }
+
+  const deleted = deleteNote(noteText);
+
+  await sendDirectReply(
+    deleted
+      ? `I've forgotten: "${noteText}"`
+      : `I couldn't find that memory: "${noteText}"`,
+    isFirstMessage
+  );
+
+  return;
+}
+
+// ── "Clear memory" ────────────────────────────────────────────
+if (
+  lowerContent.includes("clear memory") ||
+  lowerContent.includes("delete all memories") ||
+  lowerContent.includes("forget everything")
+) {
+  clearNotes();
+
+  await sendDirectReply(
+    "All saved memories have been cleared.",
+    isFirstMessage
+  );
+
+  return;
+}
     // ── "What do you remember / my notes" ─────────────────────────
     if (
       lowerContent.includes("what do you remember") ||
