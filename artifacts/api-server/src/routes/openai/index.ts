@@ -338,6 +338,21 @@ if (
 
   return;
 }
+
+// ── "Summarize conversation" ──
+if (lowerContent.includes("summarize conversation")) {
+  const summary = history
+    .map((m) => `${m.role}: ${m.content}`)
+    .join("\n")
+    .slice(0, 3000);
+
+  await sendDirectReply(
+    `Conversation Summary\n\n${summary}`,
+    isFirstMessage
+  );
+
+  return;
+}
     // ── "What do you remember / my notes" ─────────────────────────
     if (
       lowerContent.includes("what do you remember") ||
