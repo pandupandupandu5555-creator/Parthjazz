@@ -418,14 +418,22 @@ if (
 ) {
   category = "habits";
 }
+const importantNotes = notes.filter(
+  (n) => n.category === "important_memories"
+);
+    
     const relevantNotes =
   category === ""
     ? notes
     : notes.filter((n) => n.category === category);
+    const finalNotes = [
+  ...importantNotes,
+  ...relevantNotes,
+];
 
 const notesContext =
-  relevantNotes.length > 0
-    ? `\n\nMEMORY — facts you know about this user (treat these as true and use them when relevant):\n${relevantNotes.map((n) => `- ${n.text}`).join("\n")}`
+  finalNotes.length > 0
+    ? `\n\nMEMORY — facts you know about this user (treat these as true and use them when relevant):\n${finalNotes.map((n) => `- ${n.text}`).join("\n")}`
     : "";
 
     chatMessages.unshift({
