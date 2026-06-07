@@ -399,40 +399,50 @@ if (lowerContent.includes("summarize conversation")) {
     const notes = readNotes();
 
 let category = "";
+const scores = {
+  projects: 0,
+  goals: 0,
+  coding_level: 0,
+  habits: 0,
+  conversations: 0,
+};
 
-if (
-  lowerContent.includes("jarvis") ||
-  lowerContent.includes("project") ||
-  lowerContent.includes("build") ||
-  lowerContent.includes("deploy")
-) {
-  category = "projects";
-} else if (
-  lowerContent.includes("goal") ||
-  lowerContent.includes("future") ||
-  lowerContent.includes("target")
-) {
-  category = "goals";
-} else if (
-  lowerContent.includes("code") ||
-  lowerContent.includes("coding") ||
-  lowerContent.includes("programming")
-) {
-  category = "coding_level";
-} else if (
-  lowerContent.includes("habit") ||
-  lowerContent.includes("daily") ||
-  lowerContent.includes("routine")
-) {
-  category = "habits";
-}
-else if (
-  lowerContent.includes("conversation") ||
-  lowerContent.includes("chat") ||
-  lowerContent.includes("discussion")
-) {
-  category = "conversations";
-}    
+if (lowerContent.includes("jarvis")) scores.projects++;
+if (lowerContent.includes("project")) scores.projects++;
+if (lowerContent.includes("build")) scores.projects++;
+if (lowerContent.includes("deploy")) scores.projects++;
+if (lowerContent.includes("railway")) scores.projects++;
+
+if (lowerContent.includes("goal")) scores.goals++;
+if (lowerContent.includes("future")) scores.goals++;
+if (lowerContent.includes("target")) scores.goals++;
+
+if (lowerContent.includes("code")) scores.coding_level++;
+if (lowerContent.includes("coding")) scores.coding_level++;
+if (lowerContent.includes("programming")) scores.coding_level++;
+
+if (lowerContent.includes("habit")) scores.habits++;
+if (lowerContent.includes("daily")) scores.habits++;
+if (lowerContent.includes("routine")) scores.habits++;
+
+if (lowerContent.includes("conversation")) scores.conversations++;
+if (lowerContent.includes("chat")) scores.conversations++;
+if (lowerContent.includes("discussion")) scores.conversations++;
+   const highestScore = Math.max(
+  scores.projects,
+  scores.goals,
+  scores.coding_level,
+  scores.habits,
+  scores.conversations
+);
+
+if (highestScore > 0) {
+  if (scores.projects === highestScore) category = "projects";
+  else if (scores.goals === highestScore) category = "goals";
+  else if (scores.coding_level === highestScore) category = "coding_level";
+  else if (scores.habits === highestScore) category = "habits";
+  else if (scores.conversations === highestScore) category = "conversations";
+} 
 const importantNotes = notes.filter(
   (n) => n.category === "important_memories"
 );
