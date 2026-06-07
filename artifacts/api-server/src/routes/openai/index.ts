@@ -611,6 +611,44 @@ You are designed to feel like a real advanced assistant rather than a generic ch
       role: "assistant",
       content: fullResponse,
     });
+    // ── Auto Conversation Summary Memory ──
+if (
+  userContent.length > 20 &&
+  (
+    lowerContent.includes("project") ||
+    lowerContent.includes("goal") ||
+    lowerContent.includes("habit") ||
+    lowerContent.includes("important") ||
+    lowerContent.includes("jarvis")
+  )
+) {
+
+  let autoCategory = "conversations";
+
+  if (
+    lowerContent.includes("project") ||
+    lowerContent.includes("jarvis")
+  ) {
+    autoCategory = "projects";
+  } else if (
+    lowerContent.includes("goal")
+  ) {
+    autoCategory = "goals";
+  } else if (
+    lowerContent.includes("habit")
+  ) {
+    autoCategory = "habits";
+  } else if (
+    lowerContent.includes("important")
+  ) {
+    autoCategory = "important_memories";
+  }
+
+  saveNote(
+    autoCategory,
+    `[AUTO SUMMARY] ${userContent.slice(0, 200)}`
+  );
+}
 
     if (isFirstMessage) {
       const raw = userContent.trim();
