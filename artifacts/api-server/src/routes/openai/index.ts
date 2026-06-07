@@ -301,6 +301,14 @@ router.post(
 ) {
   category = "habits";
 }
+ else if (
+   
+  noteText.toLowerCase().includes("conversation") ||
+  noteText.toLowerCase().includes("chat") ||
+  noteText.toLowerCase().includes("discussion")
+) {
+  category = "conversations";
+}       
 
   saveNote(category, noteText);
       const reply = noteText
@@ -418,6 +426,13 @@ if (
 ) {
   category = "habits";
 }
+else if (
+  lowerContent.includes("conversation") ||
+  lowerContent.includes("chat") ||
+  lowerContent.includes("discussion")
+) {
+  category = "conversations";
+}    
 const importantNotes = notes.filter(
   (n) => n.category === "important_memories"
 );
