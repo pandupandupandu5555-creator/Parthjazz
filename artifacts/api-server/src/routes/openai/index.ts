@@ -265,11 +265,18 @@ router.post(
   let category = "preferences";
 
   if (
-    noteText.toLowerCase().includes("project") ||
-    noteText.toLowerCase().includes("building") ||
-    noteText.toLowerCase().includes("jarvis")
-  ) {
-    category = "projects";
+  noteText.toLowerCase().includes("prefer") ||
+  noteText.toLowerCase().includes("like") ||
+  noteText.toLowerCase().includes("favorite")
+) {
+  category = "preferences";
+} else if (
+  noteText.toLowerCase().includes("project") ||
+  noteText.toLowerCase().includes("building") ||
+  noteText.toLowerCase().includes("jarvis")
+) {
+  category = "projects";
+}
   } else if (
     noteText.toLowerCase().includes("goal") ||
     noteText.toLowerCase().includes("want to") ||
@@ -283,12 +290,18 @@ router.post(
   ) {
     category = "coding_level";
   } else if (
-    noteText.toLowerCase().includes("daily") ||
-    noteText.toLowerCase().includes("every day") ||
-    noteText.toLowerCase().includes("habit")
-  ) {
-    category = "habits";
-  }
+  noteText.toLowerCase().includes("important") ||
+  noteText.toLowerCase().includes("never forget") ||
+  noteText.toLowerCase().includes("critical")
+) {
+  category = "important_memories";
+} else if (
+  noteText.toLowerCase().includes("daily") ||
+  noteText.toLowerCase().includes("every day") ||
+  noteText.toLowerCase().includes("habit")
+) {
+  category = "habits";
+}
 
   saveNote(category, noteText);
 }
