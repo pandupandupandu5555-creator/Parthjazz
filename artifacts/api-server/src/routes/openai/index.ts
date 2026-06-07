@@ -270,14 +270,13 @@ router.post(
   noteText.toLowerCase().includes("favorite")
 ) {
   category = "preferences";
-} else if (
+  } else if (
   noteText.toLowerCase().includes("project") ||
   noteText.toLowerCase().includes("building") ||
   noteText.toLowerCase().includes("jarvis")
 ) {
   category = "projects";
-}
-  } else if (
+ } else if (
     noteText.toLowerCase().includes("goal") ||
     noteText.toLowerCase().includes("want to") ||
     noteText.toLowerCase().includes("aim")
@@ -304,14 +303,13 @@ router.post(
 }
 
   saveNote(category, noteText);
-}
-}   
       const reply = noteText
         ? `Got it. I've saved that to memory:\n\n"${noteText}"`
         : "I've noted that down.";
       await sendDirectReply(reply, isFirstMessage);
       return;
     }
+    }  
 // ── "Forget this" ─────────────────────────────────────────────
 if (lowerContent.includes("forget this")) {
   const match = userContent.match(/forget this[:\-,]?\s*([\s\S]*)/i);
