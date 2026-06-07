@@ -305,6 +305,7 @@ router.post(
 
   saveNote(category, noteText);
 }
+}   
       const reply = noteText
         ? `Got it. I've saved that to memory:\n\n"${noteText}"`
         : "I've noted that down.";
