@@ -375,17 +375,57 @@ if (lowerContent.includes("summarize conversation")) {
 }
     // ── "What do you remember / my notes" ─────────────────────────
     if (
-      lowerContent.includes("what do you remember") ||
-      lowerContent.includes("what have you remembered") ||
-      lowerContent.includes("my notes") ||
-      lowerContent.includes("show my notes") ||
-      lowerContent.includes("show notes")
-    ) {
+  lowerContent.includes("what do you remember") ||
+  lowerContent.includes("what have you remembered") ||
+  lowerContent.includes("my notes") ||
+  lowerContent.includes("show my notes") ||
+  lowerContent.includes("show notes") ||
+  lowerContent.includes("show my goals") ||
+  lowerContent.includes("show my projects") ||
+  lowerContent.includes("show my habits") ||
+  lowerContent.includes("show my conversations") ||
+  lowerContent.includes("show important memories")
+  ) {
       const notes = readNotes();
-      const reply =
-        notes.length === 0
-          ? "I don't have anything saved in memory yet. You can say \"remember this: [something]\" and I'll keep it."
-          : `Here's what I remember:\n\n${notes.map((n, i) => `${i + 1}. ${n.text}`).join("\n")}`;
+
+let requestedCategory = "";
+
+if (lowerContent.includes("show my goals")) {
+  requestedCategory = "goals";
+} else if (lowerContent.includes("show my projects")) {
+  requestedCategory = "projects";
+} else if (lowerContent.includes("show my habits")) {
+  requestedCategory = "habits";
+} else if (lowerContent.includes("show my conversations")) {
+  requestedCategory = "conversations";
+} else if (lowerContent.includes("show important memories")) {
+  requestedCategory = "important_memories";
+}
+
+const filteredNotes =
+  requestedCategory === ""
+    ? notes
+    : notes.filter((n) => n.category === requestedCategory);
+
+let heading = "Here's what I remember";
+
+if (requestedCategory === "goals") {
+  heading = "Your Goals";
+} else if (requestedCategory === "projects") {
+  heading = "Your Projects";
+} else if (requestedCategory === "habits") {
+  heading = "Your Habits";
+} else if (requestedCategory === "conversations") {
+  heading = "Your Conversations";
+} else if (requestedCategory === "important_memories") {
+  heading = "Important Memories";
+}      
+const reply =
+  filteredNotes.length === 0
+    ? "No memories found in that category."
+    : `${heading}\n\n${filteredNotes
+        .map((n, i) => `${i + 1}. ${n.text}`)
+        .join("\n")}`;
       await sendDirectReply(reply, isFirstMessage);
       return;
     }
