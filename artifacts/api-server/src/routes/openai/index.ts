@@ -377,10 +377,44 @@ if (lowerContent.includes("summarize conversation")) {
     }));
 
     const notes = readNotes();
-    const notesContext =
-      notes.length > 0
-        ? `\n\nMEMORY — facts you know about this user (treat these as true and use them when relevant):\n${notes.map((n) => `- ${n.text}`).join("\n")}`
-        : "";
+
+let category = "";
+
+if (
+  lowerContent.includes("jarvis") ||
+  lowerContent.includes("project") ||
+  lowerContent.includes("build") ||
+  lowerContent.includes("deploy")
+) {
+  category = "projects";
+} else if (
+  lowerContent.includes("goal") ||
+  lowerContent.includes("future") ||
+  lowerContent.includes("target")
+) {
+  category = "goals";
+} else if (
+  lowerContent.includes("code") ||
+  lowerContent.includes("coding") ||
+  lowerContent.includes("programming")
+) {
+  category = "coding_level";
+} else if (
+  lowerContent.includes("habit") ||
+  lowerContent.includes("daily") ||
+  lowerContent.includes("routine")
+) {
+  category = "habits";
+}
+    const relevantNotes =
+  category === ""
+    ? notes
+    : notes.filter((n) => n.category === category);
+
+const notesContext =
+  relevantNotes.length > 0
+    ? `\n\nMEMORY — facts you know about this user (treat these as true and use them when relevant):\n${relevantNotes.map((n) => `- ${n.text}`).join("\n")}`
+    : "";
 
     chatMessages.unshift({
   role: "system",
