@@ -373,6 +373,46 @@ if (lowerContent.includes("summarize conversation")) {
 
   return;
 }
+   // ── Smart Conversation Recall ──
+if (
+  lowerContent.includes("what did we discuss") ||
+  lowerContent.includes("remember when") ||
+  lowerContent.includes("previous conversation") ||
+  lowerContent.includes("last time")
+) {
+
+  const searchTerms = userContent
+    .toLowerCase()
+    .replace("what did we discuss", "")
+    .replace("remember when", "")
+    .replace("previous conversation", "")
+    .replace("last time", "")
+    .trim();
+
+  const matchingMessages = history.filter(
+    (m) => m.content.toLowerCase().includes(searchTerms)
+  );
+
+  if (matchingMessages.length === 0) {
+    await sendDirectReply(
+      "I couldn't find any related messages in this conversation.",
+      isFirstMessage
+    );
+    return;
+  }
+
+  const recall = matchingMessages
+    .slice(0, 10)
+    .map((m) => `${m.role}: ${m.content}`)
+    .join("\n\n");
+
+  await sendDirectReply(
+    `Here's what I found:\n\n${recall}`,
+    isFirstMessage
+  );
+
+  return;
+} 
     // ── "What do you remember / my notes" ─────────────────────────
     if (
   lowerContent.includes("what do you remember") ||
