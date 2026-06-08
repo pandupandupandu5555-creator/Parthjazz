@@ -713,10 +713,15 @@ if (
   logError(
     `Conversation ${params.data.id}: ${String(error)}`
   );
+    logAI(
+  `Fallback activated for conversation ${params.data.id}`
+);  
       const errorText = String(error).toLowerCase();
 
   let errorMessage =
-  "Sorry, I encountered an error while processing your request.";
+  "I'm temporarily unable to access my AI engine, but I can still help with basic requests.";
+      const fallbackReply =
+  "Fallback Mode Active.\n\nThe AI service is currently unavailable. Please try again in a moment.";
 
 if (
   errorText.includes("rate limit") ||
@@ -735,7 +740,7 @@ if (
 
 res.write(
   `data: ${JSON.stringify({
-    content: errorMessage
+    content: fallbackReply
   })}\n\n`
 );
 
