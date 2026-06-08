@@ -599,16 +599,27 @@ You are designed to feel like a real advanced assistant rather than a generic ch
    logAI(
   `Starting AI request for conversation ${params.data.id}`
 ); 
-     let stream;
-let attempts = 0; 
+      let stream;
+let attempts = 0;
+
+const TIMEOUT_MS = 30000;
     while (attempts < 2) {
   try {
-    stream = await openai.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      max_completion_tokens: 8192,
-      messages: chatMessages,
-      stream: true,
-    });
+    stream = await Promise.race([
+  openai.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    max_completion_tokens: 8192,
+    messages: chatMessages,
+    stream: true,
+  }),
+
+  new Promise((_, reject) =>
+    setTimeout(
+      () => reject(new Error("AI request timeout")),
+      TIMEOUT_MS
+    )
+  )
+]);
 
     break;
 
@@ -702,12 +713,31 @@ if (
   logError(
     `Conversation ${params.data.id}: ${String(error)}`
   );
+      const errorText = String(error).toLowerCase();
 
-  res.write(
-    `data: ${JSON.stringify({
-      content: "Sorry, I encountered an error while processing your request."
-    })}\n\n`
-  );
+  let errorMessage =
+  "Sorry, I encountered an error while processing your request.";
+
+if (
+  errorText.includes("rate limit") ||
+  errorText.includes("429") ||
+  errorText.includes("too many requests")
+) {
+  errorMessage =
+    "I'm receiving too many requests right now. Please wait a moment and try again.";
+}
+      else if (
+  errorText.includes("timeout")
+) {
+  errorMessage =
+    "The AI is taking too long to respond. Please try again.";
+}
+
+res.write(
+  `data: ${JSON.stringify({
+    content: errorMessage
+  })}\n\n`
+);
 
   res.write(
     `data: ${JSON.stringify({ done: true })}\n\n`
