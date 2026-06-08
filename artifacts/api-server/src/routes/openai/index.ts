@@ -599,12 +599,32 @@ You are designed to feel like a real advanced assistant rather than a generic ch
    logAI(
   `Starting AI request for conversation ${params.data.id}`
 ); 
-    const stream = await openai.chat.completions.create({
-     model: "llama-3.3-70b-versatile", 
+     let stream;
+let attempts = 0; 
+    while (attempts < 2) {
+  try {
+    stream = await openai.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
       max_completion_tokens: 8192,
       messages: chatMessages,
       stream: true,
     });
+
+    break;
+
+  } catch (error) {
+
+    attempts++;
+
+    logError(
+      `Retry ${attempts} failed for conversation ${params.data.id}`
+    );
+
+    if (attempts >= 2) {
+      throw error;
+    }
+  }
+}
 
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content;
