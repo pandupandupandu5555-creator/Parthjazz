@@ -595,6 +595,9 @@ You are designed to feel like a real advanced assistant rather than a generic ch
 
     let fullResponse = "";
 
+   logAI(
+  `Starting AI request for conversation ${params.data.id}`
+); 
     const stream = await openai.chat.completions.create({
      model: "llama-3.3-70b-versatile", 
       max_completion_tokens: 8192,
@@ -615,6 +618,9 @@ You are designed to feel like a real advanced assistant rather than a generic ch
       role: "assistant",
       content: fullResponse,
     });
+    logAI(
+  `AI response completed for conversation ${params.data.id}`
+);
     // ── Auto Conversation Summary Memory ──
 if (
   userContent.length > 20 &&
