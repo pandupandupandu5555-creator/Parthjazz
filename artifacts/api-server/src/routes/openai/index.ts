@@ -593,6 +593,7 @@ You are designed to feel like a real advanced assistant rather than a generic ch
 });
   
 
+    try {
     let fullResponse = "";
 
    logAI(
@@ -676,6 +677,24 @@ if (
 
     res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
     res.end();
+     } catch (error) {
+
+  logError(
+    `Conversation ${params.data.id}: ${String(error)}`
+  );
+
+  res.write(
+    `data: ${JSON.stringify({
+      content: "Sorry, I encountered an error while processing your request."
+    })}\n\n`
+  );
+
+  res.write(
+    `data: ${JSON.stringify({ done: true })}\n\n`
+  );
+
+  res.end();
+} 
   }
 );
 
