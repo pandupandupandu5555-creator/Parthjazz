@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { eq, asc } from "drizzle-orm";
 import { db, pool, conversations, messages } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
+import { logError, logAI, logRequest } from "../../utils/logger";
 import {
   readNotes,
   saveNote,
@@ -221,6 +222,9 @@ router.post(
     }
 
     const userContent = body.data.content;
+    logRequest(
+  `Conversation ${params.data.id}: ${userContent}`
+);
     const lowerContent = userContent.toLowerCase();
 
     await db.insert(messages).values({
