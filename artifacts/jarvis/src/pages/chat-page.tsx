@@ -49,7 +49,6 @@ export default function ChatPage() {
   const idParam = params.id ? parseInt(params.id) : undefined;
 
   const { data: conversations, isLoading: loadingConversations } = useListOpenaiConversations();
-  console.log("conversations data =", conversations);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: currentConversation } = useGetOpenaiConversation(idParam!, {
     query: { enabled: !!idParam } as any,
