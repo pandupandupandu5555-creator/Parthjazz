@@ -447,7 +447,7 @@ export default function ChatPage() {
                   </p>
                 </div>
               ) : (
-                <div className="max-w-3xl mx-auto space-y-6 pb-8">
+                <div className="w-full space-y-6 pb-8">
                   {messages.map((msg, i) => (
                     <div
                       key={msg.id}
@@ -460,7 +460,7 @@ export default function ChatPage() {
                       <div className="relative max-w-[85%]">
                         <div
                           className={cn(
-                            "rounded-2xl px-5 py-4 text-[15px] leading-relaxed",
+                            "rounded-2xl px-5 py-4 text-[15px] leading-relaxed w-full",
                             msg.role === "user"
                               ? "bg-secondary text-secondary-foreground rounded-br-sm"
                               : "bg-transparent border border-border/50 text-foreground"
@@ -474,7 +474,7 @@ export default function ChatPage() {
                               </span>
                             </div>
                           )}
-                          <div className="whitespace-pre-wrap">{msg.content}</div>
+                          <div className="whitespace-pre-wrap break-words">{msg.content}</div>
                         </div>
                         <button
                           onClick={() => handleCopy(msg.id, msg.content)}

@@ -13,6 +13,7 @@ export function useChatStream(conversationId?: number) {
   }, []);
 
   const sendMessage = useCallback(async (content: string) => {
+    console.log("SENDING:", content);
     if (!conversationId || isStreaming || !content.trim()) return;
 
     setIsStreaming(true);
