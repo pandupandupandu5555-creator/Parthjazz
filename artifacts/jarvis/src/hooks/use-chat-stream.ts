@@ -34,10 +34,11 @@ export function useChatStream(conversationId?: number) {
 
       const decoder = new TextDecoder();
       let fullContent = "";
+      let streamDone = false;        // ← CORRECT POSITION: outside the while loop
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done || streamDone) break;
 
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');
@@ -52,15 +53,19 @@ export function useChatStream(conversationId?: number) {
                 fullContent += data.content;
                 setStreamingContent(fullContent);
               }
-              if (data.done) break;
+              if (data.done) {
+                streamDone = true;   // ← sets flag, exits inner loop
+                break;
+              }
             } catch {
-              // malformed SSE chunk — skip
+              // malformed SSE chunk - skip
             }
           }
         }
       }
+
     } catch (error) {
-      // Ignore stream cancellation — user clicked Stop
+      // Ignore stream cancellation - user clicked Stop
       if (error instanceof Error && error.name === 'AbortError') return;
     } finally {
       readerRef.current = null;
