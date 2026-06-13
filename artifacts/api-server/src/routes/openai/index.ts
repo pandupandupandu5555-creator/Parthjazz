@@ -607,8 +607,8 @@ const TIMEOUT_MS = 30000;
   try {
     stream = await Promise.race([
   openai.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    max_completion_tokens: 8192,
+    model: process.env.OPENAI_MODEL || "llama-3.1-8b-instant",
+    max_completion_tokens: 1024,
     messages: chatMessages,
     stream: true,
   }),
