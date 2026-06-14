@@ -495,7 +495,11 @@ if (lowerContent.includes("jarvis")) scores.projects++;
 if (lowerContent.includes("project")) scores.projects++;
 if (lowerContent.includes("build")) scores.projects++;
 if (lowerContent.includes("deploy")) scores.projects++;
-if (lowerContent.includes("railway")) scores.projects++;
+if (lowerContent.includes("backend")) scores.projects++;
+if (lowerContent.includes("frontend")) scores.projects++;
+if (lowerContent.includes("assistant")) scores.projects++;
+if (lowerContent.includes("ai")) scores.projects++;
+if (lowerContent.includes("application")) scores.projects++;
 
 if (lowerContent.includes("goal")) scores.goals++;
 if (lowerContent.includes("future")) scores.goals++;
@@ -538,7 +542,7 @@ const importantNotes = notes.filter(
     const finalNotes = [
   ...importantNotes,
   ...relevantNotes,
-];
+].slice(0, 5);
 
 const notesContext =
   finalNotes.length > 0
@@ -557,7 +561,16 @@ Your behavior:
 - Give structured answers when useful.
 - Keep responses concise unless detailed explanation is requested.
 - Give short answers for simple questions.
-- Give detailed explanations when the user asks "explain", "teach me", "how", or requests details.
+- Give detailed explanations when the user asks;
+"explain",
+"teach me",
+"why",
+"compare",
+"difference",
+"advantages",
+"disadvantages",
+"pros and cons",
+or requests details.
 - Match response length to user intent.
 - Remember and use relevant user context naturally.
 - Be adaptive and practical.
