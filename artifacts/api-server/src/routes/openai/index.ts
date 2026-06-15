@@ -22,6 +22,8 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+const requestCounts = new Map< string,
+{ count: number; resetTime: number } >();
 
 router.get("/openai/conversations", async (_req, res): Promise<void> => {
   const result = await db
@@ -199,6 +201,22 @@ router.get(
 router.post(
   "/openai/conversations/:id/messages",
   async (req, res): Promise<void> => {
+    const ip = req.ip || "unknown";
+    const now = Date.now();
+
+    const current = requestCounts.get(ip);
+
+    if (!current || now > current.resetTime) {requestCounts.set(ip, {count: 1, resetTime: now + 15 * 60 * 1000,});
+  } else {
+    current.count++;
+
+  if (current.count > 30) {
+  res.status(429).json({
+    error: "Too many requests. Please try again later.",
+  });
+  return;
+}
+  }
     const params = SendOpenaiMessageParams.safeParse(req.params);
     if (!params.success) {
       res.status(400).json({ error: params.error.message });
