@@ -22,6 +22,8 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+const requestCounts = new Map< string,
+{ count: number; resetTime: number } >();
 
 router.get("/openai/conversations", async (_req, res): Promise<void> => {
   const result = await db
@@ -199,6 +201,22 @@ router.get(
 router.post(
   "/openai/conversations/:id/messages",
   async (req, res): Promise<void> => {
+    const ip = req.ip || "unknown";
+    const now = Date.now();
+
+    const current = requestCounts.get(ip);
+
+    if (!current || now > current.resetTime) {requestCounts.set(ip, {count: 1, resetTime: now + 15 * 60 * 1000,});
+  } else {
+    current.count++;
+
+  if (current.count > 30) {
+  res.status(429).json({
+    error: "Too many requests. Please try again later.",
+  });
+  return;
+}
+  }
     const params = SendOpenaiMessageParams.safeParse(req.params);
     if (!params.success) {
       res.status(400).json({ error: params.error.message });
@@ -495,7 +513,11 @@ if (lowerContent.includes("jarvis")) scores.projects++;
 if (lowerContent.includes("project")) scores.projects++;
 if (lowerContent.includes("build")) scores.projects++;
 if (lowerContent.includes("deploy")) scores.projects++;
-if (lowerContent.includes("railway")) scores.projects++;
+if (lowerContent.includes("backend")) scores.projects++;
+if (lowerContent.includes("frontend")) scores.projects++;
+if (lowerContent.includes("assistant")) scores.projects++;
+if (lowerContent.includes("ai")) scores.projects++;
+if (lowerContent.includes("application")) scores.projects++;
 
 if (lowerContent.includes("goal")) scores.goals++;
 if (lowerContent.includes("future")) scores.goals++;
@@ -538,7 +560,7 @@ const importantNotes = notes.filter(
     const finalNotes = [
   ...importantNotes,
   ...relevantNotes,
-];
+].slice(0, 5);
 
 const notesContext =
   finalNotes.length > 0
@@ -557,7 +579,16 @@ Your behavior:
 - Give structured answers when useful.
 - Keep responses concise unless detailed explanation is requested.
 - Give short answers for simple questions.
-- Give detailed explanations when the user asks "explain", "teach me", "how", or requests details.
+- Give detailed explanations when the user asks;
+"explain",
+"teach me",
+"why",
+"compare",
+"difference",
+"advantages",
+"disadvantages",
+"pros and cons",
+or requests details.
 - Match response length to user intent.
 - Remember and use relevant user context naturally.
 - Be adaptive and practical.
@@ -607,8 +638,8 @@ const TIMEOUT_MS = 30000;
   try {
     stream = await Promise.race([
   openai.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    max_completion_tokens: 8192,
+    model: process.env.OPENAI_MODEL || "llama-3.1-8b-instant",
+    max_completion_tokens: 1024,
     messages: chatMessages,
     stream: true,
   }),

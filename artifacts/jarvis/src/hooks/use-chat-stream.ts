@@ -57,8 +57,8 @@ export function useChatStream(conversationId?: number) {
                 streamDone = true;   // ← sets flag, exits inner loop
                 break;
               }
-            } catch {
-              // malformed SSE chunk - skip
+            } catch (err) {
+              console.error("SSE PARSE ERROR:", dataStr);
             }
           }
         }
