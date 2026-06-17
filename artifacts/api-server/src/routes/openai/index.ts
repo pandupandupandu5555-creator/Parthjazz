@@ -338,6 +338,7 @@ router.post(
   category = "conversations";
 }       
 
+saveNote(category, noteText);
   await db.insert(userMemories).values({key: noteText.slice(0, 100), value: noteText, category,});
       const reply = noteText
         ? `Got it. I've saved that to memory:\n\n"${noteText}"`
@@ -441,6 +442,49 @@ if (
 
   return;
 } 
+// ── Memory Search ──
+if (
+  lowerContent.startsWith("search memory") ||
+  lowerContent.startsWith("find memory")
+) {
+
+  const searchTerm = userContent
+    .replace(/search memory/i, "")
+    .replace(/find memory/i, "")
+    .trim()
+    .toLowerCase();
+
+  const notes = readNotes();
+  console.log("NOTES:", notes);
+
+  const matches = notes.filter(
+    (n) =>
+      n.text.toLowerCase().includes(searchTerm) ||
+      n.category.toLowerCase().includes(searchTerm)
+  );
+
+  if (matches.length === 0) {
+    await sendDirectReply(
+      `No memories found matching "${searchTerm}".`,
+      isFirstMessage
+    );
+    return;
+  }
+
+  const results = matches
+    .slice(0, 20)
+    .map(
+      (n, i) => `${i + 1}. [${n.category}] ${n.text}`
+    )
+    .join("\n");
+
+  await sendDirectReply(
+    `Memory Search Results\n\n${results}`,
+    isFirstMessage
+  );
+
+  return;
+}
     // ── "What do you remember / my notes" ─────────────────────────
     if (   
   lowerContent.includes("what do you remember") ||
