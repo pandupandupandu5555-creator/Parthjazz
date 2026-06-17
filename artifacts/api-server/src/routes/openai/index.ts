@@ -442,7 +442,7 @@ if (
   return;
 } 
     // ── "What do you remember / my notes" ─────────────────────────
-    if (
+    if (   
   lowerContent.includes("what do you remember") ||
   lowerContent.includes("what have you remembered") ||
   lowerContent.includes("my notes") ||
@@ -452,9 +452,63 @@ if (
   lowerContent.includes("show my projects") ||
   lowerContent.includes("show my habits") ||
   lowerContent.includes("show my conversations") ||
-  lowerContent.includes("show important memories")
+  lowerContent.includes("show important memories") ||
+lowerContent.includes("what do you know about me") ||
+lowerContent.includes("who am i") ||
+lowerContent.includes("user profile")
   ) {
       const notes = readNotes();
+  if (
+  lowerContent.includes("what do you know about me") ||
+  lowerContent.includes("who am i") ||
+  lowerContent.includes("user profile")
+) {
+
+  const preferences = notes.filter(
+    n => n.category === "preferences"
+  );
+
+  const projects = notes.filter(
+    n => n.category === "projects"
+  );
+
+  const goals = notes.filter(
+    n => n.category === "goals"
+  );
+
+  const habits = notes.filter(
+    n => n.category === "habits"
+  );
+
+  let summary = "PERSONAL KNOWLEDGE STORE\n\n";
+
+  if (preferences.length) {
+    summary += "Preferences:\n";
+    summary += preferences.map(n => `• ${n.text}`).join("\n");
+    summary += "\n\n";
+  }
+
+  if (projects.length) {
+    summary += "Projects:\n";
+    summary += projects.map(n => `• ${n.text}`).join("\n");
+    summary += "\n\n";
+  }
+
+  if (goals.length) {
+    summary += "Goals:\n";
+    summary += goals.map(n => `• ${n.text}`).join("\n");
+    summary += "\n\n";
+  }
+
+  if (habits.length) {
+    summary += "Habits:\n";
+    summary += habits.map(n => `• ${n.text}`).join("\n");
+    summary += "\n\n";
+  }
+
+  await sendDirectReply(summary, isFirstMessage);
+  return;
+}    
 
 let requestedCategory = "";
 
