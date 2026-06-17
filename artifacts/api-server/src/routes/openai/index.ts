@@ -1,6 +1,12 @@
 import { Router, type IRouter } from "express";
 import { eq, asc } from "drizzle-orm";
-import { db, pool, conversations, messages } from "@workspace/db";
+import {
+  db,
+  pool,
+  conversations,
+  messages,
+  userMemories
+} from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { logError, logAI, logRequest } from "../../utils/logger";
 import {
@@ -332,7 +338,7 @@ router.post(
   category = "conversations";
 }       
 
-  saveNote(category, noteText);
+  await db.insert(userMemories).values({key: noteText.slice(0, 100), value: noteText, category,});
       const reply = noteText
         ? `Got it. I've saved that to memory:\n\n"${noteText}"`
         : "I've noted that down.";
