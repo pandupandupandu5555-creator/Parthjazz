@@ -338,6 +338,11 @@ router.post(
   category = "conversations";
 }       
 
+const notes = readNotes();
+
+const duplicate = notes.find( (n) => n.text.trim().toLowerCase() === noteText.trim().toLowerCase());
+
+if (duplicate) { await sendDirectReply("I already know that. This memory is already stored.", isFirstMessage); return;}
 saveNote(category, noteText);
   await db.insert(userMemories).values({key: noteText.slice(0, 100), value: noteText, category,});
       const reply = noteText
