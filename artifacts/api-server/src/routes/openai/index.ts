@@ -502,12 +502,37 @@ if (
   lowerContent.includes("show my habits") ||
   lowerContent.includes("show my conversations") ||
   lowerContent.includes("show important memories") ||
+  lowerContent.includes("memory stats") ||
+  lowerContent.includes("memory statistics") ||
+  lowerContent.includes("stats") ||
 lowerContent.includes("what do you know about me") ||
 lowerContent.includes("who am i") ||
 lowerContent.includes("user profile")
   ) {
       const notes = readNotes();
+      const totalMemories = notes.length;
+      const preferenceCount = notes.filter(n => n.category === "preferences").length;
+      const projectsCount = notes.filter(n => n.category === "projects").length;
+      const goalsCount = notes.filter(n => n.category === "goals").length;
+      const habitsCount = notes.filter(n => n.category === "habits").length;
       const importantMemories = notes.filter( n => n.category === "important_memories");
+      if (
+  lowerContent.includes("memory stats") ||
+  lowerContent.includes("memory statistics") ||
+  lowerContent.includes("stats")
+) {
+  let stats = "MEMORY STATISTICS\n\n";
+
+  stats += `Total Memories: ${totalMemories}\n`;
+  stats += `Preferences: ${preferenceCount}\n`;
+  stats += `Projects: ${projectsCount}\n`;
+  stats += `Goals: ${goalsCount}\n`;
+  stats += `Habits: ${habitsCount}\n`;
+  stats += `Important Memories: ${importantMemories.length}\n`;
+
+  await sendDirectReply(stats, isFirstMessage);
+  return;
+}
   if (
   lowerContent.includes("what do you know about me") ||
   lowerContent.includes("who am i") ||
