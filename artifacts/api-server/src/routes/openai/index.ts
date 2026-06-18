@@ -517,6 +517,15 @@ lowerContent.includes("user profile")
       const habitsCount = notes.filter(n => n.category === "habits").length;
       const importantMemories = notes.filter( n => n.category === "important_memories");
       if (
+        lowerContent.includes("export memories") ||
+        lowerContent.includes("backup memory") ||
+        lowerContent.includes("download memories")
+      ) {
+        const exportData = JSON.stringify(notes, null, 2);
+       await sendDirectReply(`MEMORY EXPORT\n\n${exportData}`, isFirstMessage);
+       return;
+      }
+      if (
   lowerContent.includes("memory stats") ||
   lowerContent.includes("memory statistics") ||
   lowerContent.includes("stats")
