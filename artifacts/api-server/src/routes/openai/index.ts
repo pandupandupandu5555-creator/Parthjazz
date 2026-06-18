@@ -507,6 +507,7 @@ lowerContent.includes("who am i") ||
 lowerContent.includes("user profile")
   ) {
       const notes = readNotes();
+      const importantMemories = notes.filter( n => n.category === "important_memories");
   if (
   lowerContent.includes("what do you know about me") ||
   lowerContent.includes("who am i") ||
@@ -530,6 +531,7 @@ lowerContent.includes("user profile")
   );
 
   let summary = "PERSONAL KNOWLEDGE STORE\n\n";
+  summary += `Total Memories: ${notes.length}\n\n`;
 
   if (preferences.length) {
     summary += "Preferences:\n";
@@ -554,6 +556,7 @@ lowerContent.includes("user profile")
     summary += habits.map(n => `• ${n.text}`).join("\n");
     summary += "\n\n";
   }
+  if (importantMemories.length) {summary += "Important Memories:\n"; summary += importantMemories.map(n => `. $ {n.text}`).join("\n"); summary += "\n\n";}
 
   await sendDirectReply(summary, isFirstMessage);
   return;
