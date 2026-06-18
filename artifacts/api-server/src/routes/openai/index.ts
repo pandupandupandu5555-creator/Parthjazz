@@ -502,6 +502,7 @@ if (
   lowerContent.includes("show my habits") ||
   lowerContent.includes("show my conversations") ||
   lowerContent.includes("show important memories") ||
+  lowerContent.includes("show importance scores") ||
   lowerContent.includes("memory stats") ||
   lowerContent.includes("memory statistics") ||
   lowerContent.includes("stats") ||
@@ -525,6 +526,17 @@ lowerContent.includes("user profile")
        await sendDirectReply(`MEMORY EXPORT\n\n${exportData}`, isFirstMessage);
        return;
       }
+      if (lowerContent.includes("show importance scores")) {
+
+  let scores = "MEMORY IMPORTANCE SCORES\n\n";
+
+  notes.forEach((note, index) => {
+    scores += `${index + 1}. [${note.importance}] ${note.text}\n`;
+  });
+
+  await sendDirectReply(scores, isFirstMessage);
+  return;
+}
       if (
   lowerContent.includes("memory stats") ||
   lowerContent.includes("memory statistics") ||

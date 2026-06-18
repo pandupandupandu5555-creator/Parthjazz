@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 export interface Note {
   category: string;
   text: string;
+  importance: number;
   savedAt: string;
 }
 
@@ -39,6 +40,12 @@ export function saveNote(category: string, text: string): void {
   notes.push({
     category,
     text,
+    importance:
+    category === "important_memories" ? 5 :
+    category === "projects" ? 4 :
+    category === "goals" ? 4 :
+    category === "preferences" ? 3:
+    2,
     savedAt: new Date().toISOString(),
   });
 
